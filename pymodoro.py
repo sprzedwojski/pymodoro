@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import tkinter as tk
 
 SECONDS_IN_A_MINUTE = 60
 MAIN_TIME_FRACTION = 0.8
@@ -15,6 +16,21 @@ def dnd_on():
 def dnd_off():
     print("DND off")
     os.system("do-not-disturb off")
+
+
+def show_end():
+    root = tk.Tk()
+    root.title("Pymodoro")
+    window_width = 800
+    window_height = 500
+    position_right = int(root.winfo_screenwidth() / 2 - window_width / 2)
+    position_down = int(root.winfo_screenheight() / 2 - window_height / 2)
+    # Positions the window in the center of the page.
+    root.geometry("{}x{}+{}+{}".format(window_width, window_height, position_right, position_down))
+    label = tk.Label(root, text="Pomodoro finished.\nTake a break!")
+    label.place(x=window_width/2, y=window_height/2, anchor="center")
+    label.config(font=("Courier", 60))
+    tk.mainloop()
 
 
 minutes = int(sys.argv[1])
@@ -40,6 +56,7 @@ try:
     print("Pomodoro finished")
     dnd_off()
     os.system("say DING DING DING, pomodoro finished, DND off - take a break")
+    show_end()
 except (KeyboardInterrupt, SystemExit):
     print("\n")
     dnd_off()
