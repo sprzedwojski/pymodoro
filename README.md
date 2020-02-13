@@ -1,5 +1,6 @@
-# Pymodoro
+![Pymodoro logo](img/gh_logo.png)
 
+# Pymodoro
 Pomodoro timer for macOS, which turns on the DND (Do Not Disturb) mode for the pomodoro's duration.
 
 ### Prerequisites
