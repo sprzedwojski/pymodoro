@@ -38,29 +38,29 @@ Pomodoro started, you have 25 minutes
 DND on
 25 minutes left
 24 minutes left
-23 minutes left
-22 minutes left
-21 minutes left
-20 minutes left
-19 minutes left
-18 minutes left
-17 minutes left
-16 minutes left
-15 minutes left
-14 minutes left
-13 minutes left
-12 minutes left
-11 minutes left
-10 minutes left
-9 minutes left
-8 minutes left
-7 minutes left
-6 minutes left
-5 minutes left
-4 minutes left
-3 minutes left
+(...)
 2 minutes left
 1 minutes left
 Pomodoro finished
 DND off
+```
+
+#### Voice
+There will also be a voice reading out loud the start and the
+end of the pomodoro, as well as when 20% of the time is left.
+
+To turn it off, run Pymodoro with the `--no-sound` flag:
+```
+$ python3 pymodoro.py 25 --no-sound
+```
+
+#### Popup
+At the end of the pomodoro you will also be alerted with
+a popup:
+
+![Pymodoro popup](img/pymodoro_popup.png)
+
+To turn it off, run Pymodoro with the `--no-popup` flag:
+```
+$ python3 pymodoro.py 25 --no-popup
 ```

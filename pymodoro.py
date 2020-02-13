@@ -34,11 +34,16 @@ def show_end():
 
 
 minutes = int(sys.argv[1])
+options = sys.argv[2:]
+
+sound_on = "--no-sound" not in options
+popup_on = "--no-popup" not in options
 
 try:
     print(f"Pomodoro started, you have {minutes} minutes")
     dnd_on()
-    os.system(f"say pomodoro started, you have {minutes} minutes, DND on")
+    if sound_on:
+        os.system(f"say pomodoro started, you have {minutes} minutes, DND on")
 
     main_minutes = round(MAIN_TIME_FRACTION * minutes)
     remaining_minutes = round(REMAINING_TIME_FRACTION * minutes)
@@ -47,7 +52,8 @@ try:
         print(f"{minutes - minute} minutes left")
         time.sleep(SECONDS_IN_A_MINUTE)
 
-    os.system(f"say {remaining_minutes} minutes left in the pomodoro")
+    if sound_on:
+        os.system(f"say {remaining_minutes} minutes left in the pomodoro")
 
     for minute in range(remaining_minutes):
         print(f"{remaining_minutes - minute} minutes left")
@@ -55,8 +61,10 @@ try:
 
     print("Pomodoro finished")
     dnd_off()
-    os.system("say DING DING DING, pomodoro finished, DND off - take a break")
-    show_end()
+    if sound_on:
+        os.system("say DING DING DING, pomodoro finished, DND off - take a break")
+    if popup_on:
+        show_end()
 except (KeyboardInterrupt, SystemExit):
     print("\n")
     dnd_off()
