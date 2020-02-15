@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 import time
 import tkinter as tk
 
@@ -33,6 +34,10 @@ def show_end():
     tk.mainloop()
 
 
+def speak(msg):
+    os.system(msg)
+
+
 minutes = int(sys.argv[1])
 options = sys.argv[2:]
 
@@ -43,7 +48,9 @@ try:
     print(f"Pomodoro started, you have {minutes} minutes")
     dnd_on()
     if sound_on:
-        os.system(f"say pomodoro started, you have {minutes} minutes, DND on")
+        x = threading.Thread(target=speak,
+                             args=(f"say pomodoro started, you have {minutes} minutes, DND on",))
+        x.start()
 
     main_minutes = round(MAIN_TIME_FRACTION * minutes)
     remaining_minutes = round(REMAINING_TIME_FRACTION * minutes)
@@ -53,7 +60,9 @@ try:
         time.sleep(SECONDS_IN_A_MINUTE)
 
     if sound_on:
-        os.system(f"say {remaining_minutes} minutes left in the pomodoro")
+        x = threading.Thread(target=speak,
+                             args=(f"say {remaining_minutes} minutes left in the pomodoro",))
+        x.start()
 
     for minute in range(remaining_minutes):
         print(f"{remaining_minutes - minute} minutes left")
@@ -62,7 +71,9 @@ try:
     print("Pomodoro finished")
     dnd_off()
     if sound_on:
-        os.system("say DING DING DING, pomodoro finished, DND off - take a break")
+        x = threading.Thread(target=speak,
+                             args=("say DING DING DING, pomodoro finished, DND off - take a break",))
+        x.start()
     if popup_on:
         show_end()
 except (KeyboardInterrupt, SystemExit):
