@@ -11,6 +11,7 @@ REMAINING_TIME_FRACTION = 0.2
 
 def dnd_on():
     print("DND on")
+    time.sleep(5)  # Delaying so that our notification about DND ON started appears on screen ;)
     os.system("do-not-disturb on")
 
 
@@ -38,19 +39,31 @@ def speak(msg):
     os.system(msg)
 
 
+def notify(title, text):
+    os.system("""
+              osascript -e 'display notification "{}" with title "{}"'
+              """.format(text, title))
+
+
 minutes = int(sys.argv[1])
 options = sys.argv[2:]
 
 sound_on = "--no-sound" not in options
 popup_on = "--no-popup" not in options
 
+
 try:
-    print(f"Pomodoro started, you have {minutes} minutes")
-    dnd_on()
+    notify_thrd = threading.Thread(target=notify, args=("Pymodoro", f"Pomodoro started! You have {minutes} minutes."))
+    notify_thrd.start()
+
     if sound_on:
         x = threading.Thread(target=speak,
                              args=(f"say pomodoro started, you have {minutes} minutes, DND on",))
         x.start()
+
+    print(f"Pomodoro started, you have {minutes} minutes")
+    dnd_on_thrd = threading.Thread(target=dnd_on)
+    dnd_on_thrd.start()
 
     main_minutes = round(MAIN_TIME_FRACTION * minutes)
     remaining_minutes = round(REMAINING_TIME_FRACTION * minutes)
@@ -58,6 +71,13 @@ try:
     for minute in range(main_minutes):
         print(f"{minutes - minute} minutes left")
         time.sleep(SECONDS_IN_A_MINUTE)
+
+    # System notification
+    # FIXME Experimenting
+    os.system("do-not-disturb off")
+    notify("Pymodoro", f"Pomodoro: {remaining_minutes} minutes left.")
+    time.sleep(5)
+    os.system("do-not-disturb on")
 
     if sound_on:
         x = threading.Thread(target=speak,
