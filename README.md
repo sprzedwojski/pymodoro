@@ -13,7 +13,7 @@ node.js program to control the macOS DND mode.
 You need to have it installed globally for Pymodoro to work correcty.
 
 ```
-$ npm install --global do-not-disturb-cli
+$ npm i -g macos-focus-mode
 ```
 
 #### Python 3
