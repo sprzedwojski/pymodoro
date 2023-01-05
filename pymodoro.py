@@ -12,12 +12,12 @@ REMAINING_TIME_FRACTION = 0.2
 def dnd_on():
     print("DND on")
     time.sleep(5)  # Delaying so that our notification about DND ON started appears on screen ;)
-    os.system("do-not-disturb on")
+    os.system("macos-focus-mode enable --silent")
 
 
 def dnd_off():
     print("DND off")
-    os.system("do-not-disturb off")
+    os.system("macos-focus-mode disable")
 
 
 def show_end():
@@ -51,15 +51,14 @@ options = sys.argv[2:]
 sound_on = "--no-sound" not in options
 popup_on = "--no-popup" not in options
 
-
 try:
-    notify_thrd = threading.Thread(target=notify, args=("Pymodoro", f"Pomodoro started! You have {minutes} minutes."))
+    notify_thrd = threading.Thread(target=notify, args=("Pymodoro", f"{minutes} minutes, go go go!"))
     notify_thrd.start()
 
-    if sound_on:
-        x = threading.Thread(target=speak,
-                             args=(f"say pomodoro started, you have {minutes} minutes, DND on",))
-        x.start()
+    # if sound_on:
+    #     x = threading.Thread(target=speak,
+    #                          args=(f"say {minutes} minutes, focus time!",))
+    #     x.start()
 
     print(f"Pomodoro started, you have {minutes} minutes")
     dnd_on_thrd = threading.Thread(target=dnd_on)
@@ -74,25 +73,25 @@ try:
 
     # System notification
     # FIXME Experimenting
-    os.system("do-not-disturb off")
-    notify("Pymodoro", f"Pomodoro: {remaining_minutes} minutes left.")
-    time.sleep(5)
-    os.system("do-not-disturb on")
-
-    if sound_on:
-        x = threading.Thread(target=speak,
-                             args=(f"say {remaining_minutes} minutes left in the pomodoro",))
-        x.start()
-
-    for minute in range(remaining_minutes):
-        print(f"{remaining_minutes - minute} minutes left")
-        time.sleep(SECONDS_IN_A_MINUTE)
+    if remaining_minutes != 0:
+        if sound_on:
+            x = threading.Thread(target=speak,
+                                 args=(f"say {remaining_minutes} minutes left",))
+            x.start()
+        # os.system("macos-focus-mode disable")
+        # notify("Pymodoro", f"Pomodoro: {remaining_minutes} minutes left.")
+        for minute in range(remaining_minutes):
+            print(f"{remaining_minutes - minute} minutes left")
+            time.sleep(SECONDS_IN_A_MINUTE)
+        time.sleep(5)
+        # os.system("macos-focus-mode enable --silent")
 
     print("Pomodoro finished")
     dnd_off()
+    notify("Pymodoro", f"Pomodoro finished. Take a break!")
     if sound_on:
         x = threading.Thread(target=speak,
-                             args=("say DING DING DING, pomodoro finished, DND off - take a break",))
+                             args=("say pomodoro finished - take a break",))
         x.start()
     if popup_on:
         show_end()

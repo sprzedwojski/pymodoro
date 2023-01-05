@@ -7,7 +7,7 @@ Pomodoro timer for macOS, which turns on the DND (Do Not Disturb) mode for the p
 
 #### do-not-disturb-cli
 
-This project uses the [`do-not-disturb-cli`](https://github.com/sindresorhus/do-not-disturb-cli)
+This project uses the [`macos-focus-mode`](https://github.com/arodik/macos-focus-mode)
 node.js program to control the macOS DND mode.
 
 You need to have it installed globally for Pymodoro to work correcty.
