@@ -1,7 +1,6 @@
 import os
 import sys
 import threading
-import time
 import tkinter as tk
 from tkinter import ttk
 
@@ -10,9 +9,36 @@ MAIN_TIME_FRACTION = 0.8
 REMAINING_TIME_FRACTION = 0.2
 
 
+def install_focus_mode():
+    print("Installing macos-focus-mode...")
+    if os.system("npm i -g macos-focus-mode") != 0:
+        print("Something went wrong. Aborting")
+        exit(1)
+    if os.system("macos-focus-mode install") != 0:
+        print("Something went wrong. Aborting")
+        exit(1)
+    print("Once you've finished adding the MacOS shortcut, please launch Pymodoro again :)")
+    exit(0)
+
+
+res = os.system("macos-focus-mode --help")
+if res != 0:
+    should_install_focus_mode = input("macos-focus-mode missing, do you want to install it now? (y/n): ")
+    if should_install_focus_mode == "y":
+        is_npm_installed = os.system("npm -v")
+        if is_npm_installed != 0:
+            print("Please install nodejs and npm, e.g. using Brew: https://formulae.brew.sh/formula/node")
+        else:
+            print("Node and npm detected")
+            install_focus_mode()
+    else:
+        print("Please install macos-focus-mode manually before retrying: https://github.com/arodik/macos-focus-mode")
+        exit(res)
+
+
 def dnd_on():
     print("DND on")
-    time.sleep(5)  # Delaying so that our notification about DND ON started appears on screen ;)
+    # time.sleep(5)  # Delaying so that our notification about DND ON started appears on screen ;)
     os.system("macos-focus-mode enable --silent")
 
 
@@ -46,20 +72,23 @@ def notify(title, text):
               """.format(text, title))
 
 
-minutes = int(sys.argv[1])
+pomodoro_duration_minutes = int(sys.argv[1])
+pomodoro_duration_seconds = pomodoro_duration_minutes * 60
 options = sys.argv[2:]
 
 sound_on = "--no-sound" not in options
 popup_on = "--no-popup" not in options
 
 root = tk.Tk()
-progress = tk.IntVar()
+progress = tk.DoubleVar()
 style = ttk.Style(root)
 # print(style.theme_names())
 style.theme_use('classic')
 root.title("Pymodoro session")
 root.geometry('400x60')
-pb = ttk.Progressbar(root, orient='horizontal', mode='determinate', length=380, maximum=minutes,
+pb = ttk.Progressbar(root, orient='horizontal', mode='determinate',
+                     length=380,
+                     maximum=pomodoro_duration_seconds,
                      variable=progress)
 pb.grid(column=0, row=0, columnspan=2, padx=10, pady=20)
 # pb.pack()
@@ -69,8 +98,9 @@ pb.grid(column=0, row=0, columnspan=2, padx=10, pady=20)
 #     pb['value'] += 10
 # tk.mainloop()
 # TODO: use this: https://stackoverflow.com/a/36520333/1972469
-one_minute_in_millis = 500
-minutes_in_millis = minutes * one_minute_in_millis
+one_minute_in_millis = 1000*60
+one_second_in_millis = 1000
+minutes_in_millis = pomodoro_duration_minutes * one_minute_in_millis
 
 
 def end_pomodoro():
@@ -78,15 +108,20 @@ def end_pomodoro():
     show_end()
 
 
-def minute_elapsed(first_run: bool):
+def second_elapsed(first_run: bool):
     if not first_run:
-        if progress.get() >= minutes:
+        progress.set(progress.get() + 1)  # second
+        if progress.get() >= pomodoro_duration_seconds:
             end_pomodoro()
-        progress.set(progress.get() + 1)
-    root.after(one_minute_in_millis, minute_elapsed, False)
+    root.after(one_second_in_millis, second_elapsed, False)
 
 
-minute_elapsed(True)
+# notify_thrd = threading.Thread(target=notify, args=("Pymodoro", f"{minutes} minutes, go go go!"))
+# notify_thrd.start()
+dnd_on_thrd = threading.Thread(target=dnd_on)
+dnd_on_thrd.start()
+
+second_elapsed(True)
 root.mainloop()
 
 
