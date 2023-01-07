@@ -2,7 +2,7 @@ import os
 import sys
 import threading
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 SECONDS_IN_A_MINUTE = 60
 MAIN_TIME_FRACTION = 0.8
@@ -120,6 +120,15 @@ def second_elapsed(first_run: bool):
 # notify_thrd.start()
 dnd_on_thrd = threading.Thread(target=dnd_on)
 dnd_on_thrd.start()
+
+def on_closing():
+    if messagebox.askokcancel("Quit", "Do you want to stop the Pomodoro?"):
+        dnd_off()
+        root.destroy()
+
+
+root.protocol("WM_DELETE_WINDOW", on_closing)
+
 
 second_elapsed(True)
 root.mainloop()
