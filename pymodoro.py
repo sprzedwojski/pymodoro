@@ -53,12 +53,14 @@ sound_on = "--no-sound" not in options
 popup_on = "--no-popup" not in options
 
 root = tk.Tk()
+progress = tk.IntVar()
 style = ttk.Style(root)
-print(style.theme_names())
+# print(style.theme_names())
 style.theme_use('classic')
 root.title("Pymodoro session")
 root.geometry('400x60')
-pb = ttk.Progressbar(root, orient='horizontal', mode='determinate', length=380, maximum=minutes)
+pb = ttk.Progressbar(root, orient='horizontal', mode='determinate', length=380, maximum=minutes,
+                     variable=progress)
 pb.grid(column=0, row=0, columnspan=2, padx=10, pady=20)
 # pb.pack()
 # pb.after(1000, lambda: _ )
@@ -78,10 +80,9 @@ def end_pomodoro():
 
 def minute_elapsed(first_run: bool):
     if not first_run:
-        if pb['value'] >= minutes:
+        if progress.get() >= minutes:
             end_pomodoro()
-        pb['value'] += 1
-        root.update_idletasks()
+        progress.set(progress.get() + 1)
     root.after(one_minute_in_millis, minute_elapsed, False)
 
 
