@@ -80,6 +80,11 @@ sound_on = "--no-sound" not in options
 popup_on = "--no-popup" not in options
 
 root = tk.Tk()
+
+# Solution for the icon: https://stackoverflow.com/a/52930845/1972469
+img = tk.Image("photo", file="pymodoro.png")
+root.iconphoto(True, img)
+
 progress = tk.DoubleVar()
 style = ttk.Style(root)
 # print(style.theme_names())
