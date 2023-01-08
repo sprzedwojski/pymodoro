@@ -1,6 +1,7 @@
 import os
 import sys
 import threading
+import time
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -59,6 +60,8 @@ def show_end():
     label = tk.Label(root, text="Pomodoro finished.\nTake a break!")
     label.place(x=window_width/2, y=window_height/2, anchor="center")
     label.config(font=("Courier", 60))
+
+    root.attributes('-topmost', True)  # Make the window jump in front of other apps
     tk.mainloop()
 
 
@@ -78,117 +81,113 @@ options = sys.argv[2:]
 
 sound_on = "--no-sound" not in options
 popup_on = "--no-popup" not in options
-
-root = tk.Tk()
-
-# Solution for the icon: https://stackoverflow.com/a/52930845/1972469
-img = tk.Image("photo", file="pymodoro.png")
-root.iconphoto(True, img)
-
-progress = tk.DoubleVar()
-style = ttk.Style(root)
-# print(style.theme_names())
-style.theme_use('classic')
-root.title("Pymodoro session")
-root.geometry('400x60')
-pb = ttk.Progressbar(root, orient='horizontal', mode='determinate',
-                     length=380,
-                     maximum=pomodoro_duration_seconds,
-                     variable=progress)
-pb.grid(column=0, row=0, columnspan=2, padx=10, pady=20)
-# pb.pack()
-# pb.after(1000, lambda: _ )
-# for minute in range(minutes):
-#     time.sleep(SECONDS_IN_A_MINUTE)
-#     pb['value'] += 10
-# tk.mainloop()
-# TODO: use this: https://stackoverflow.com/a/36520333/1972469
-one_minute_in_millis = 1000*60
-one_second_in_millis = 1000
-minutes_in_millis = pomodoro_duration_minutes * one_minute_in_millis
+progressbar_on = "--no-progress" not in options
 
 
-def end_pomodoro():
-    root.destroy()
-    show_end()
+if progressbar_on:
+    root = tk.Tk()
+    menubar = tk.Menu(root)
+    root.config(menu=menubar)
+
+    # Solution for the icon: https://stackoverflow.com/a/52930845/1972469
+    img = tk.Image("photo", file="pymodoro.png")
+    root.iconphoto(True, img)
+
+    progress = tk.DoubleVar()
+    style = ttk.Style(root)
+    style.theme_use('classic')
+    root.title("Pymodoro session")
+    root.geometry('400x60')
+    pb = ttk.Progressbar(root, orient='horizontal', mode='determinate',
+                         length=380,
+                         maximum=pomodoro_duration_seconds,
+                         variable=progress)
+    pb.grid(column=0, row=0, columnspan=2, padx=10, pady=20)
+    one_minute_in_millis = 1000*60
+    one_second_in_millis = 1000
+    minutes_in_millis = pomodoro_duration_minutes * one_minute_in_millis
 
 
-def second_elapsed(first_run: bool):
-    if not first_run:
-        progress.set(progress.get() + 1)  # second
-        if progress.get() >= pomodoro_duration_seconds:
-            end_pomodoro()
-    root.after(one_second_in_millis, second_elapsed, False)
-
-
-# notify_thrd = threading.Thread(target=notify, args=("Pymodoro", f"{minutes} minutes, go go go!"))
-# notify_thrd.start()
-dnd_on_thrd = threading.Thread(target=dnd_on)
-dnd_on_thrd.start()
-
-def on_closing():
-    if messagebox.askokcancel("Quit", "Do you want to stop the Pomodoro?"):
-        dnd_off()
+    def end_pomodoro():
         root.destroy()
+        if sound_on:
+            x = threading.Thread(target=speak,
+                                 args=("say pomodoro finished - take a break",))
+            x.start()
+        show_end()
 
 
-root.protocol("WM_DELETE_WINDOW", on_closing)
+    def second_elapsed(first_run: bool):
+        if not first_run:
+            progress.set(progress.get() + 1)  # second
+            if progress.get() >= pomodoro_duration_seconds:
+                end_pomodoro()
+        root.after(one_second_in_millis, second_elapsed, False)
 
 
-second_elapsed(True)
-root.mainloop()
+    dnd_on_thrd = threading.Thread(target=dnd_on)
+    dnd_on_thrd.start()
 
 
+    def on_closing():
+        if messagebox.askokcancel("Quit", "Do you want to stop the Pomodoro?"):
+            dnd_off()
+            root.destroy()
 
-# try:
-#     # progress_thrd = threading.Thread(target=show_progress)
-#     # progress_thrd.start()
-#     # show_progress()
-#
-#     notify_thrd = threading.Thread(target=notify, args=("Pymodoro", f"{minutes} minutes, go go go!"))
-#     notify_thrd.start()
-#
-#     # if sound_on:
-#     #     x = threading.Thread(target=speak,
-#     #                          args=(f"say {minutes} minutes, focus time!",))
-#     #     x.start()
-#
-#     print(f"Pomodoro started, you have {minutes} minutes")
-#     dnd_on_thrd = threading.Thread(target=dnd_on)
-#     dnd_on_thrd.start()
-#
-#     main_minutes = round(MAIN_TIME_FRACTION * minutes)
-#     remaining_minutes = round(REMAINING_TIME_FRACTION * minutes)
-#
-#     for minute in range(main_minutes):
-#         print(f"{minutes - minute} minutes left")
-#         time.sleep(SECONDS_IN_A_MINUTE)
-#
-#     # System notification
-#     # FIXME Experimenting
-#     if remaining_minutes != 0:
-#         if sound_on:
-#             x = threading.Thread(target=speak,
-#                                  args=(f"say {remaining_minutes} minutes left",))
-#             x.start()
-#         # os.system("macos-focus-mode disable")
-#         # notify("Pymodoro", f"Pomodoro: {remaining_minutes} minutes left.")
-#         for minute in range(remaining_minutes):
-#             print(f"{remaining_minutes - minute} minutes left")
-#             time.sleep(SECONDS_IN_A_MINUTE)
-#         time.sleep(5)
-#         # os.system("macos-focus-mode enable --silent")
-#
-#     print("Pomodoro finished")
-#     dnd_off()
-#     notify("Pymodoro", f"Pomodoro finished. Take a break!")
-#     if sound_on:
-#         x = threading.Thread(target=speak,
-#                              args=("say pomodoro finished - take a break",))
-#         x.start()
-#     if popup_on:
-#         show_end()
-# except (KeyboardInterrupt, SystemExit):
-#     print("\n")
-#     dnd_off()
-#     print("You've successfully interrupted a pomodoro. Goodbye!")
+
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+
+
+    second_elapsed(True)
+    root.mainloop()
+
+else:
+    try:
+        notify_thrd = threading.Thread(target=notify,
+                                       args=("Pymodoro", f"{pomodoro_duration_minutes} minutes, go go go!"))
+        notify_thrd.start()
+
+        # if sound_on:
+        #     x = threading.Thread(target=speak,
+        #                          args=(f"say {minutes} minutes, focus time!",))
+        #     x.start()
+
+        print(f"Pomodoro started, you have {pomodoro_duration_minutes} minutes")
+        dnd_on_thrd = threading.Thread(target=dnd_on)
+        dnd_on_thrd.start()
+
+        main_minutes = round(MAIN_TIME_FRACTION * pomodoro_duration_minutes)
+        remaining_minutes = round(REMAINING_TIME_FRACTION * pomodoro_duration_minutes)
+
+        for minute in range(main_minutes):
+            print(f"{pomodoro_duration_minutes - minute} minutes left")
+            time.sleep(SECONDS_IN_A_MINUTE)
+
+        # System notification
+        # FIXME Experimenting
+        if remaining_minutes != 0:
+            if sound_on:
+                x = threading.Thread(target=speak,
+                                     args=(f"say {remaining_minutes} minutes left",))
+                x.start()
+            # os.system("macos-focus-mode disable")
+            # notify("Pymodoro", f"Pomodoro: {remaining_minutes} minutes left.")
+            for minute in range(remaining_minutes):
+                print(f"{remaining_minutes - minute} minutes left")
+                time.sleep(SECONDS_IN_A_MINUTE)
+            time.sleep(5)
+            # os.system("macos-focus-mode enable --silent")
+
+        print("Pomodoro finished")
+        dnd_off()
+        notify("Pymodoro", f"Pomodoro finished. Take a break!")
+        if sound_on:
+            x = threading.Thread(target=speak,
+                                 args=("say pomodoro finished - take a break",))
+            x.start()
+        if popup_on:
+            show_end()
+    except (KeyboardInterrupt, SystemExit):
+        print("\n")
+        dnd_off()
+        print("You've successfully interrupted a pomodoro. Goodbye!")
