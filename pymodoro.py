@@ -86,6 +86,7 @@ progressbar_on = "--no-progress" not in options
 
 if progressbar_on:
     root = tk.Tk()
+    root.attributes('-topmost', True)
     menubar = tk.Menu(root)
     root.config(menu=menubar)
 
@@ -114,6 +115,7 @@ if progressbar_on:
             x = threading.Thread(target=speak,
                                  args=("say pomodoro finished - take a break",))
             x.start()
+        dnd_off()
         show_end()
 
 
@@ -136,8 +138,6 @@ if progressbar_on:
 
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
-
-
     second_elapsed(True)
     root.mainloop()
 
